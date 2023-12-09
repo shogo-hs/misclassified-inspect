@@ -1,6 +1,6 @@
-# MisClassifiedTxnVisualizer
+# misinspect
 
-MisClassifiedTxnVisualizer は、誤分類された取引を分析し、可視化するためのライブラリです。
+misinspect は、誤分類された取引を分析し、可視化するためのライブラリです。
 このライブラリは、Jupyter ノートブック内でインタラクティブなウィジェットを使用して、誤分類された取引（FPとFN）の分析結果を表示し、特定のユーザーの取引履歴をグラフとして可視化します。
 
 ## 特徴
@@ -16,7 +16,7 @@ GitHub リポジトリから直接インストールできます：
 git clone https://github.com/shogo-hs/misclassified-inspect.git
 ```
 ```
-cd MisClassifiedTxnVisualizer
+cd misinspect
 ```
 ```
 pip install .
@@ -24,11 +24,10 @@ pip install .
 
 ## 使用方法
 
-MisClassifiedTxnVisualizer の基本的な使用方法は以下のとおりです：
+misinspect の基本的な使用方法は以下のとおりです：
 
 ```python
 from misinspect.analysis.binary import MisClassifiedTxnAnalyzer
-from misinspect.visualization.payment_history_plot import plot_payment_history
 from jupyter import MisClassifiedTxnVisualizer
 import pandas as pd
 
