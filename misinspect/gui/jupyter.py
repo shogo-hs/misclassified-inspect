@@ -39,7 +39,7 @@ class MisClassifiedTxnVisualizer:
         self.fn_user_ids = None
         self.user_data = None
 
-        self.update_misclassified_data()
+        # self.update_misclassified_data()
 
     def show(self) -> None:
         """ウィジェットの可視化を実行します。"""
@@ -163,9 +163,6 @@ class MisClassifiedTxnVisualizer:
             self.fp_user_ids if selected_type == "FP" else self.fn_user_ids
         )
 
-        # ユーザードロップダウンのオプションを更新
-        self.update_user_dropdown_options()
-
     def create_threshold_dropdown(self) -> widgets.Dropdown:
         """閾値のドロップダウンを設定します。"""
 
@@ -184,11 +181,10 @@ class MisClassifiedTxnVisualizer:
         # analyzerインスタンスの閾値を更新
         self.analyzer.threshold = new_threshold
 
-        # FPとFNのデータ、ユーザーIDリストを更新
-        self.update_misclassified_data()
+        self.analyzer.get_misclassified_data()
 
-        # ユーザードロップダウンのオプションを更新
-        self.update_user_dropdown_options()
+        # FPFNドロップダウンのオプションを更新
+        self.update_fpfn_dropdown_options()
 
     def create_user_dropdown(self) -> widgets.Dropdown:
         """対象ユーザーのドロップダウンを設定します。"""
@@ -209,19 +205,25 @@ class MisClassifiedTxnVisualizer:
             selected_user_id, self.analyzer.dataset
         ).reset_index(drop=True)
 
-    def update_user_dropdown_options(self) -> None:
-        """ユーザードロップダウンのオプションを更新します。"""
-        self.user_dropdown.options = self.target_user_ids
+    def update_fpfn_dropdown_options(self) -> None:
+        """FPFNドロップダウンのオプションを更新します。"""
 
-    def update_misclassified_data(self) -> None:
-        """FPとFNのデータ、およびユーザーIDリストを更新します。"""
-
-        # 新しい閾値に基づいて誤分類データを取得
-        self.analyzer.get_misclassified_data()
         # FPとFNのデータを更新
         fp_data = self.analyzer.get_misclassified_data_by_type("FP")
         fn_data = self.analyzer.get_misclassified_data_by_type("FN")
-
         # ユーザーIDリストを更新
         self.fp_user_ids = self.analyzer.get_unique_user_ids(fp_data)
         self.fn_user_ids = self.analyzer.get_unique_user_ids(fn_data)
+
+    # def update_misclassified_data(self) -> None:
+    #     """FPとFNのデータ、およびユーザーIDリストを更新します。"""
+
+    #     # 新しい閾値に基づいて誤分類データを取得
+    #     self.analyzer.get_misclassified_data()
+    #     # FPとFNのデータを更新
+    #     fp_data = self.analyzer.get_misclassified_data_by_type("FP")
+    #     fn_data = self.analyzer.get_misclassified_data_by_type("FN")
+
+    #     # ユーザーIDリストを更新
+    #     self.fp_user_ids = self.analyzer.get_unique_user_ids(fp_data)
+    #     self.fn_user_ids = self.analyzer.get_unique_user_ids(fn_data)
