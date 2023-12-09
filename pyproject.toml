@@ -1,0 +1,43 @@
+[tool.poetry]
+name = "misinspect"
+version = "0.1.0"
+description = ""
+authors = ["shogohasegawa <hasesho0824@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+matplotlib = "^3.8.2"
+numpy = "^1.26.2"
+pandas = "^2.1.4"
+pyspark = "^3.5.0"
+notebook = "^7.0.6"
+ipywidgets = "^8.1.1"
+
+[tool.poetry.group.dev.dependencies]
+taskipy = "^1.12.2"
+mypy = "^1.7.1"
+black = "^23.11.0"
+flake8 = "^6.1.0"
+autoflake = "^2.2.1"
+isort = "^5.12.0"
+pytest = "^7.4.3"
+pep8-naming = "^0.13.3"
+pytest-cov = "^4.1.0"
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+allow_redefinition = true
+warn_redundant_casts = true
+incremental = false
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.taskipy.tasks]
+lint = "flake8 --ignore=E501 misinspect tests && isort -c misinspect tests && black --check -t py39 --diff --line-length 119 misinspect tests"
+format = "autoflake --in-place --remove-unused-variables --remove-all-unused-imports --recursive misinspect tests && black --line-length 119 misinspect tests"
+mypy = "mypy misinspect tests"
+test = "pytest -vv --cov=misinspect --cov-report=html --junitxml=test_result/junit.xml test"
