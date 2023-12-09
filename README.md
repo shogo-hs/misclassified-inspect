@@ -1,6 +1,7 @@
 # MisClassifiedTxnVisualizer
 
-MisClassifiedTxnVisualizer は、誤分類された取引を分析し、可視化するためのライブラリです。このライブラリは、Jupyter ノートブック内でインタラクティブなウィジェットを使用して、誤分類された取引（FPとFN）の分析結果を表示し、特定のユーザーの取引履歴をグラフとして可視化します。
+MisClassifiedTxnVisualizer は、誤分類された取引を分析し、可視化するためのライブラリです。
+このライブラリは、Jupyter ノートブック内でインタラクティブなウィジェットを使用して、誤分類された取引（FPとFN）の分析結果を表示し、特定のユーザーの取引履歴をグラフとして可視化します。
 
 ## 特徴
 
@@ -8,22 +9,18 @@ MisClassifiedTxnVisualizer は、誤分類された取引を分析し、可視�
 - 誤分類された取引（FPとFN）の分析。
 - 特定ユーザーの取引履歴のグラフ表示。
 
-## 必要条件
-
-- Python 3.x
-- pandas
-- matplotlib
-- ipywidgets
-- Jupyter Notebook
-
 ## インストール方法
 
 GitHub リポジトリから直接インストールできます：
-
+```
 git clone https://github.com/shogo-hs/misclassified-inspect.git
+```
+```
 cd MisClassifiedTxnVisualizer
+```
+```
 pip install .
-
+```
 
 ## 使用方法
 
