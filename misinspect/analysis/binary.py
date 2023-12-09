@@ -64,6 +64,20 @@ class MisClassifiedTxnAnalyzer:
             spark (SparkSession): Sparkセッション。デフォルトは None。
         """
 
+        # Sparkセッションが提供されている場合
+        if spark is not None:
+            if not isinstance(dataset, SparkDataFrame):
+                raise ValueError(
+                    "dataset must be a SparkDataFrame when a SparkSession is provided"
+                )
+
+        # Sparkセッションが提供されていない場合
+        else:
+            if not isinstance(dataset, pd.DataFrame):
+                raise ValueError(
+                    "dataset must be a pandas DataFrame when no SparkSession is provided"
+                )
+
         # 必要なカラムがデータセットに存在するか確認
         required_columns = [user_id_col, price_col, datetime_col, prob_col, label_col]
         missing_columns = [
