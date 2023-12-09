@@ -163,6 +163,8 @@ class MisClassifiedTxnVisualizer:
             self.fp_user_ids if selected_type == "FP" else self.fn_user_ids
         )
 
+        self.user_dropdown.options = self.target_user_ids
+
     def create_threshold_dropdown(self) -> widgets.Dropdown:
         """閾値のドロップダウンを設定します。"""
 
