@@ -16,7 +16,7 @@ GitHub リポジトリから直接インストールできます：
 git clone https://github.com/shogo-hs/misclassified-inspect.git
 ```
 ```
-cd misinspect
+cd misclassified-inspect
 ```
 ```
 pip install .
@@ -35,7 +35,16 @@ import pandas as pd
 data = pd.read_csv('your_data.csv')
 
 # 分析器の初期化
-analyzer = MisClassifiedTxnAnalyzer(data, 'user_id', 'price', 'use_dt', 'probability', 'label')
+analyzer = MisClassifiedTxnAnalyzer(
+    dataset=data,            #if you want to analyze spark dataframe you set spark dataframe
+    user_id_col='user_id',
+    price_col='price',
+    datetime_col='use_dt',
+    prob_col='probability',
+    label_col='label',
+    threshold=0.8,           #default0.8
+    spark=None,              #if you use spark dataframe you set sparksession
+)
 
 # 可視化クラスの初期化
 visualizer = MisClassifiedTxnVisualizer(analyzer)
