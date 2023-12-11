@@ -39,8 +39,7 @@ def calculate_precision_recall(
     df_sorted["recall"] = df_sorted["TP_cumulative"] / P  # 再現率 = 真の陽性の累積数 / 正の事例の合計数
 
     # 重複する行を削除して一意のデータフレームを返す
-    df_sorted = df_sorted[["recall", "precision"]].drop_duplicates()
-    return df_sorted.sort_values(by="recall", ascending=True).reset_index(drop=True)
+    return df_sorted[["recall", "precision"]].drop_duplicates().reset_index(drop=True)
 
 
 
@@ -82,8 +81,7 @@ def calculate_precision_recall_spark(
     df = df.withColumn("recall", F.col("TP_cumulative") / F.lit(P))
 
     # 重複する行を削除して一意のデータフレームを作成
-    df_unique = df.select("recall", "precision").dropDuplicates()
+    df_unique = df.orderBy(F.col("probability_round").desc()).select("recall", "precision").dropDuplicates()
 
     # Pandas DataFrameに変換して返す
-    pdf = df_unique.toPandas()
-    return pdf.sort_values(by="recall", ascending=True).reset_index(drop=True)
+    return df_unique.toPandas().reset_index(drop=True)
