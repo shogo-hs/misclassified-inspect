@@ -47,7 +47,7 @@ class MisClassifiedTxnAnalyzer:
         datetime_col: str = "use_dt",
         prob_col: str = "probability",
         label_col: str = "label",
-        threshold: float = 0.5,
+        threshold: float = 0.8,
         spark: SparkSession = None,
     ) -> None:
         """
@@ -164,7 +164,7 @@ class MisClassifiedTxnAnalyzer:
                 .toPandas()
             )
 
-    def create_confusion_matrix(self) -> pd.DataFrame:
+    def get_confusion_matrix(self) -> pd.DataFrame:
         """
         混同行列を作成し、それをデータフレームとして返します。
 
@@ -215,18 +215,6 @@ class MisClassifiedTxnAnalyzer:
 
         return pd.concat([count_df_ordered, additional_rows], ignore_index=True)
 
-    def get_confusion_matrix_lists(self) -> tuple:
-        """
-        混同行列のデータとヘッダーをリスト形式で返します。
-
-        Returns:
-            tuple: 混同行列のデータとヘッダーを含むタプル。
-        """
-        confusion_matrix_df = self.create_confusion_matrix()
-        confusion_matrix_data = confusion_matrix_df.values.tolist()
-        confusion_matrix_headers = confusion_matrix_df.columns.tolist()
-        return confusion_matrix_data, confusion_matrix_headers
-
     def plot_pr_auc(self):
         """
         精度-再現率曲線（Precision-Recall Curve）をプロットします。
@@ -243,24 +231,27 @@ class MisClassifiedTxnAnalyzer:
                 self.dataset, self.label_col, self.prob_col
             )
 
-        # グラフサイズは変更せずに、ここでfigsizeをそのままにします。
-        fig, ax = plt.subplots(figsize=(2, 2))  # このサイズは小さすぎる可能性がありますが、要求に応じてそのままにします。
+        # グラフサイズを設定
+        fig, ax = plt.subplots(figsize=(7, 7))
 
-        # グラフのデータをプロット
+        # グラフのデータをプロット（線グラフ）
         ax.plot(pr_df["recall"], pr_df["precision"])
 
-        # 軸ラベルのフォントサイズをさらに小さくします。
-        ax.set_xlabel("Recall", fontsize=7)
-        ax.set_ylabel("Precision", fontsize=7)
+        # 軸ラベルの設定
+        ax.set_xlabel("Recall", fontsize=10)
+        ax.set_ylabel("Precision", fontsize=10)
 
-        # タイトルのフォントサイズを小さくし、余白を調整します。
-        ax.set_title("Precision-Recall Curve", fontsize=8)
+        # グラフのタイトル設定
+        ax.set_title("Precision-Recall Curve", fontsize=10)
+
+        # グラフの余白調整
         plt.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)
 
-        # ティックのフォントサイズを調整
-        ax.tick_params(axis="both", which="major", labelsize=6)
+        # ティックのフォントサイズを設定
+        ax.tick_params(axis="both", which="major", labelsize=10)
 
-        return fig
+        # グラフを表示（オプション）
+        plt.show()
 
     def get_unique_user_ids(self, data) -> List[str]:
         """
