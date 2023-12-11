@@ -52,4 +52,5 @@ visualizer = MisClassifiedTxnVisualizer(analyzer)
 # 可視化の表示
 visualizer.show()
 ```
+![image](https://github.com/shogo-hs/misclassified-inspect/assets/71430108/459de54a-370e-4e01-b4e5-f57455409c72)
 
