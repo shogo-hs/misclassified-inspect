@@ -35,9 +35,9 @@ def plot_payment_history(
     fraudsegments = segments[user_data[label_col].to_numpy()[:-1] == 1]
 
     normal_lc = LineCollection(
-        normalsegments, colors="blue", linewidth=2, label="Normal"
+        normalsegments, colors="blue", linewidth=1, label="Normal"
     )
-    fraud_lc = LineCollection(fraudsegments, colors="red", linewidth=2, label="Fraud")
+    fraud_lc = LineCollection(fraudsegments, colors="red", linewidth=1, label="Fraud")
 
     plt.figure(figsize=(10, 4))
     plt.gca().add_collection(normal_lc)
