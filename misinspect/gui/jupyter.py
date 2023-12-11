@@ -33,41 +33,47 @@ class MisClassifiedTxnVisualizer:
             analyzer (MisClassifiedTxnAnalyzer): 誤分類分析を行うAnalyzerクラスのインスタンス。
         """
         self.analyzer = analyzer
-
         self.target_type = "FP"
         self.target_user_ids = []
         self.fp_user_ids = None
         self.fn_user_ids = None
         self.user_data = None
 
-        # self.update_misclassified_data()
+        # イベントハンドラーの設定
+        self.thredhold_dropdown = self.create_threshold_dropdown()
+        self.thredhold_dropdown.observe(self.on_thredhold_dropdown, "value")
+        self.fpfn_select = self.create_fpfn_select()
+        self.fpfn_select.observe(self.on_select_fpfn, "value")
+        self.user_dropdown = self.create_user_dropdown()
+        self.user_dropdown.observe(self.on_user_dropdown, "value")
 
     def show(self) -> None:
         """ウィジェットの可視化を実行します。"""
-        # ウィジェットの作成
-        self.fpfn_select = self.create_fpfn_select()
-        self.thredhold_dropdown = self.create_threshold_dropdown()
-        self.user_dropdown = self.create_user_dropdown()
         display_user_data_button = widgets.Button(description="display user data")
         plot_history_button = widgets.Button(description="plot payment history")
+        plot_pr_button = widgets.Button(description="plot pr curve")
+        display_eval_results_button = widgets.Button(description="display eval results")
 
-        # ボタンを横並びに配置するためのHBoxを作成
-        buttons_box = widgets.HBox([display_user_data_button, plot_history_button])
-
-        # イベントハンドラの設定
-        self.thredhold_dropdown.observe(self.on_thredhold_dropdown, "value")
-        self.fpfn_select.observe(self.on_select_fpfn, "value")
-        self.user_dropdown.observe(self.on_user_dropdown, "value")
-
-        plot_history_button.on_click(self.on_click_plot_history_button_callback)
+        # ボタンを押した際の処理設定
         display_user_data_button.on_click(self.on_click_display_user_data_callback)
+        plot_history_button.on_click(self.on_click_plot_history_button_callback)
+        plot_pr_button.on_click(self.on_click_plot_pr_button_callback)
+        display_eval_results_button.on_click(self.on_click_display_eval_results_button_callback)
+
+        # 初期値の設定
+        self.analyzer.get_misclassified_data()
+        self.update_fpfn_dropdown_options()
+        self.update_user_dropdown_options()
 
         # ウィジェットの表示
+        buttons_box1 = widgets.HBox([plot_pr_button, display_eval_results_button])
+        buttons_box2 = widgets.HBox([display_user_data_button, plot_history_button])
         display(
             self.thredhold_dropdown,
             self.fpfn_select,
             self.user_dropdown,
-            buttons_box,
+            buttons_box1,
+            buttons_box2,
             output,
         )
 
@@ -78,6 +84,24 @@ class MisClassifiedTxnVisualizer:
 
         print("threshold: ", self.analyzer.threshold)
         print("target_user_ids: ", self.target_user_ids)
+
+    def on_click_plot_pr_button_callback(self, b: widgets.Button) -> None:
+        """「plot pr curve」ボタンクリック時のコールバック関数。"""
+        with output:
+            output.clear_output()
+            try:
+                self.analyzer.plot_pr_auc()
+            except:
+                print("閾値が選択されていません。")
+
+    def on_click_display_eval_results_button_callback(self, b: widgets.Button) -> None:
+        """「display eval results」ボタンクリック時のコールバック関数。"""
+        with output:
+            output.clear_output()
+            try:
+                display(self.analyzer.get_confusion_matrix())
+            except:
+                print("閾値が選択されていません。")        
 
     def on_click_plot_history_button_callback(self, b: widgets.Button) -> None:
         """「plot payment history」ボタンクリック時のコールバック関数。"""
@@ -91,7 +115,7 @@ class MisClassifiedTxnVisualizer:
                     self.analyzer.label_col,
                 )
             else:
-                print("データが見つかりません。")
+                print("ユーザーが選択されていません。")
 
     def on_click_display_user_data_callback(self, b: widgets.Button) -> None:
         """「display user data」ボタンクリック時のコールバック関数。"""
@@ -143,14 +167,14 @@ class MisClassifiedTxnVisualizer:
                 display(pdf_styler(self.user_data))
                 # display(self.user_data)
             else:
-                print("データが見つかりません。")
+                print("ユーザーが選択されていません。")
 
     def create_fpfn_select(self) -> widgets.Select:
         """FPとFNの選択画面を設定します。"""
         return widgets.Select(
             options=["FP", "FN"],
             value=self.target_type,
-            description="Select misclassification type: ",
+            description="type: ",
             disabled=False,
         )
 
@@ -167,7 +191,7 @@ class MisClassifiedTxnVisualizer:
         return widgets.Dropdown(
             options=["{:.2f}".format(v / 100) for v in range(50, 100, 5)],
             value="{:.2f}".format(self.analyzer.threshold),
-            description="Select threshold: ",
+            description="threshold: ",
             disabled=False,
         )
 
@@ -193,7 +217,7 @@ class MisClassifiedTxnVisualizer:
         return widgets.Dropdown(
             options=self.target_user_ids,
             value=None,
-            description="Select User Id: ",
+            description="user id: ",
             disabled=False,
         )
 
