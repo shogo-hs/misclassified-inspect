@@ -34,6 +34,7 @@ class MisClassifiedTxnVisualizer:
         """
         self.analyzer = analyzer
 
+        self.target_type = "FP"
         self.target_user_ids = []
         self.fp_user_ids = None
         self.fn_user_ids = None
@@ -148,7 +149,7 @@ class MisClassifiedTxnVisualizer:
         """FPとFNの選択画面を設定します。"""
         return widgets.Select(
             options=["FP", "FN"],
-            value="FP",
+            value=self.target_type,
             description="Select misclassification type: ",
             disabled=False,
         )
@@ -156,14 +157,9 @@ class MisClassifiedTxnVisualizer:
     def on_select_fpfn(self, change) -> None:
         """FPまたはFNの選択が変更された時のイベントハンドラ。"""
         # 選択された値（FPまたはFN）を取得
-        selected_type = change["new"]
+        self.target_type = change["new"]
 
-        # 対象ユーザーIDリストを更新
-        self.target_user_ids = (
-            self.fp_user_ids if selected_type == "FP" else self.fn_user_ids
-        )
-
-        self.user_dropdown.options = self.target_user_ids
+        self.update_user_dropdown_options()
 
     def create_threshold_dropdown(self) -> widgets.Dropdown:
         """閾値のドロップダウンを設定します。"""
@@ -187,6 +183,9 @@ class MisClassifiedTxnVisualizer:
 
         # FPFNドロップダウンのオプションを更新
         self.update_fpfn_dropdown_options()
+
+        # userドロップダウンのオプションを更新        
+        self.update_user_dropdown_options()
 
     def create_user_dropdown(self) -> widgets.Dropdown:
         """対象ユーザーのドロップダウンを設定します。"""
@@ -217,15 +216,12 @@ class MisClassifiedTxnVisualizer:
         self.fp_user_ids = self.analyzer.get_unique_user_ids(fp_data)
         self.fn_user_ids = self.analyzer.get_unique_user_ids(fn_data)
 
-    # def update_misclassified_data(self) -> None:
-    #     """FPとFNのデータ、およびユーザーIDリストを更新します。"""
+    def update_user_dropdown_options(self) -> None:
+        """userドロップダウンのオプションを更新します。"""
 
-    #     # 新しい閾値に基づいて誤分類データを取得
-    #     self.analyzer.get_misclassified_data()
-    #     # FPとFNのデータを更新
-    #     fp_data = self.analyzer.get_misclassified_data_by_type("FP")
-    #     fn_data = self.analyzer.get_misclassified_data_by_type("FN")
+        # 対象ユーザーIDリストを更新
+        self.target_user_ids = (
+            self.fp_user_ids if self.target_type == "FP" else self.fn_user_ids
+        )
 
-    #     # ユーザーIDリストを更新
-    #     self.fp_user_ids = self.analyzer.get_unique_user_ids(fp_data)
-    #     self.fn_user_ids = self.analyzer.get_unique_user_ids(fn_data)
+        self.user_dropdown.options = self.target_user_ids
