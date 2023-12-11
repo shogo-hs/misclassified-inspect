@@ -28,7 +28,7 @@ misinspect の基本的な使用方法は以下のとおりです：
 
 ```python
 from misinspect.analysis.binary import MisClassifiedTxnAnalyzer
-from jupyter import MisClassifiedTxnVisualizer
+from misinspect.gui.jupyter import MisClassifiedTxnVisualizer
 import pandas as pd
 
 # データセットの読み込み
