@@ -141,7 +141,7 @@ class MisClassifiedTxnAnalyzer:
 
         else:
             return get_classification_data_by_type_spark(
-                self.misclassified_data, "classification_type", "FP"
+                self.misclassified_data, "classification_type", type
             )
 
     def get_selected_user_data(self, user_id: str, df: pd.DataFrame) -> pd.DataFrame:
