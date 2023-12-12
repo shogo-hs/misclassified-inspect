@@ -1,6 +1,7 @@
 from typing import List, Union
 
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 from pyspark.sql import DataFrame as SparkDataFrame
@@ -215,7 +216,7 @@ class MisClassifiedTxnAnalyzer:
 
         return pd.concat([count_df_ordered, additional_rows], ignore_index=True)
 
-    def plot_pr_auc(self):
+    def plot_pr_auc(self) -> Figure:
         """
         精度-再現率曲線（Precision-Recall Curve）をプロットします。
 
@@ -231,27 +232,16 @@ class MisClassifiedTxnAnalyzer:
                 self.dataset, self.label_col, self.prob_col
             )
 
-        # グラフサイズを設定
         fig, ax = plt.subplots(figsize=(7, 7))
-
-        # グラフのデータをプロット（線グラフ）
         ax.plot(pr_df["recall"], pr_df["precision"])
-
-        # 軸ラベルの設定
         ax.set_xlabel("Recall", fontsize=10)
         ax.set_ylabel("Precision", fontsize=10)
-
-        # グラフのタイトル設定
         ax.set_title("Precision-Recall Curve", fontsize=10)
-
-        # グラフの余白調整
         plt.subplots_adjust(left=0.2, right=0.8, top=0.8, bottom=0.2)
-
-        # ティックのフォントサイズを設定
         ax.tick_params(axis="both", which="major", labelsize=10)
+        plt.close(fig)    #Notebook上でグラフが勝手に表示されるのを抑止
 
-        # グラフを表示（オプション）
-        plt.show()
+        return fig 
 
     def get_unique_user_ids(self, data) -> List[str]:
         """
