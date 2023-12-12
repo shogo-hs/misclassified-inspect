@@ -1,8 +1,8 @@
 import pandas as pd
+from sklearn.metrics import precision_recall_curve
 from pyspark.sql import DataFrame as SparkDataFrame
 from pyspark.sql import functions as F
-from pyspark.sql.window import Window
-
+from pyspark.mllib.evaluation import BinaryClassificationMetrics
 
 # Pandas DataFrame用の精度と再現率の計算関数
 def calculate_precision_recall(
@@ -20,68 +20,48 @@ def calculate_precision_recall(
     Returns:
         pd.DataFrame: 再現率と精度を含むデータフレーム。
     """
+    # 真のラベルと予測確率を取得
+    y_true = df[label_col]
+    y_scores = df[probability_col].round(decimal_places)
 
-    # 予測確率を指定された小数点以下の桁数で丸める
-    df["probability_round"] = df[probability_col].round(decimal_places)
+    # scikit-learnのprecision_recall_curve関数を使用して精度と再現率を計算
+    precision, recall, _ = precision_recall_curve(y_true, y_scores)
 
-    # 正の事例（陽性）の合計数を計算
-    P = df[label_col].sum()
+    # 結果をデータフレームに変換
+    pr_df = pd.DataFrame({
+        'precision': precision,
+        'recall': recall
+    })
 
-    # 予測確率に基づいてデータを降順に並び替え
-    df_sorted = df.sort_values(by="probability_round", ascending=False).reset_index(drop=True)
-
-    # 累積的な真の陽性（TP）と偽の陽性（FP）の数を計算
-    df_sorted["TP_cumulative"] = df_sorted[label_col].cumsum()  # 真の陽性の累積数
-    df_sorted["FP_cumulative"] = (df_sorted.index + 1) - df_sorted["TP_cumulative"]  # 偽の陽性の累積数
-
-    # 各データポイントにおける精度と再現率を計算
-    df_sorted["precision"] = df_sorted["TP_cumulative"] / (df_sorted.index + 1)  # 精度 = 真の陽性の累積数 / (インデックス + 1)
-    df_sorted["recall"] = df_sorted["TP_cumulative"] / P  # 再現率 = 真の陽性の累積数 / 正の事例の合計数
-
-    # 重複する行を削除して一意のデータフレームを返す
-    return df_sorted[["recall", "precision"]].drop_duplicates().reset_index(drop=True)
-
-
+    return pr_df
 
 # PySpark DataFrame用の精度と再現率の計算関数
-def calculate_precision_recall_spark(
-    df, label_col: str, probability_col: str, decimal_places: int = 3
-) -> pd.DataFrame:
+def calculate_precision_recall_spark(df: SparkDataFrame, label_col: str, probability_col: str) -> pd.DataFrame:
     """
     PySpark DataFrameを用いて精度（Precision）と再現率（Recall）を計算します。
 
     Args:
-        df: 真のラベルと予測確率を含むPySpark DataFrame。
+        df (SparkDataFrame): 真のラベルと予測確率を含むPySpark DataFrame。
         label_col (str): 真のラベルを含むカラムの名前。
         probability_col (str): 予測確率を含むカラムの名前。
-        decimal_places (int): 予測確率を丸める小数点以下の桁数。デフォルトは3。
 
     Returns:
-        pd.DataFrame: 再現率と精度を含むPandas DataFrame。
+        pd.DataFrame: 精度、再現率、閾値を含むDataFrame。
     """
-    # 予測確率を指定された小数点以下の桁数で丸める
-    df = df.withColumn("probability_round", F.round(probability_col, decimal_places))
+    # 真のラベルと予測確率を取得
+    score_and_labels = df.select(col(probability_col), col(label_col)).rdd
 
-    # 真の陽性の合計数を計算
-    P = df.select(F.sum(label_col)).collect()[0][0]
+    # BinaryClassificationMetricsを使用して精度と再現率を計算
+    metrics = BinaryClassificationMetrics(score_and_labels)
 
-    # 予測確率でデータを降順にソートするためのWindowSpecificationを定義
-    windowSpec = Window.orderBy(F.col("probability_round").desc())
+    # 精度、再現率、閾値を含むリストを作成
+    pr_thresholds = [
+        (threshold, precision, recall)
+        for threshold, precision in metrics.precisionByThreshold().collect()
+        for _, recall in metrics.recallByThreshold().filter(lambda x: x[0] == threshold).collect()
+    ]
 
-    # 累積的な真の陽性（TP）と偽の陽性（FP）の数を計算
-    df = df.withColumn("TP_cumulative", F.sum(label_col).over(windowSpec))
-    df = df.withColumn("FP", (F.lit(1) - F.col(label_col)))
-    df = df.withColumn("FP_cumulative", F.sum("FP").over(windowSpec))
+    # Pandas DataFrameに変換
+    pr_df = pd.DataFrame(pr_thresholds, columns=['threshold', 'precision', 'recall'])
 
-    # 精度と再現率を計算
-    df = df.withColumn(
-        "precision",
-        F.col("TP_cumulative") / (F.col("TP_cumulative") + F.col("FP_cumulative"))
-    )
-    df = df.withColumn("recall", F.col("TP_cumulative") / F.lit(P))
-
-    # 重複する行を削除して一意のデータフレームを作成
-    df_unique = df.orderBy(F.col("probability_round").desc()).select("recall", "precision").dropDuplicates()
-
-    # Pandas DataFrameに変換して返す
-    return df_unique.toPandas().reset_index(drop=True)
+    return pr_df
