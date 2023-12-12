@@ -3,12 +3,12 @@ import pandas as pd
 pd.set_option("display.max_rows", None)
 import ipywidgets as widgets
 from IPython.display import display
+import matplotlib.pyplot as plt
 
 from misinspect.analysis.binary import MisClassifiedTxnAnalyzer
 from misinspect.visualization.payment_history_plot import plot_payment_history
 
 output = widgets.Output(layout={"border": "1px solid black"})
-
 
 class MisClassifiedTxnVisualizer:
     """
@@ -38,6 +38,8 @@ class MisClassifiedTxnVisualizer:
         self.fp_user_ids = None
         self.fn_user_ids = None
         self.user_data = None
+
+        self.pr_auc_plot = self.analyzer.plot_pr_auc()    # auc_prプロットの作成
 
         # イベントハンドラーの設定
         self.thredhold_dropdown = self.create_threshold_dropdown()
@@ -90,9 +92,11 @@ class MisClassifiedTxnVisualizer:
         with output:
             output.clear_output()
             try:
-                self.analyzer.plot_pr_auc()
+                plt.figure(self.pr_auc_plot)
+                plt.show()
+
             except:
-                print("閾値が選択されていません。")
+                print("データの取得に失敗しました。")
 
     def on_click_display_eval_results_button_callback(self, b: widgets.Button) -> None:
         """「display eval results」ボタンクリック時のコールバック関数。"""
